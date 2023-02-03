@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin</title>
+    <style>
+        body{
+            font-family: "Arial";
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        header{
+            width: fit-content;
+            margin-left: 10px;
+            margin-top: 10px;
+        }
+
+        a{
+            margin-left: 10px;
+            font-weight: 600;
+            color: blue;
+        }
+
+        .box{
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            margin: auto;
+        }
+
+        table{
+            width: 100%;
+        }
+
+        td{
+            text-align: center;
+        }
+
+        .main{
+            overflow: hidden;
+        }
+
+        .left {
+            width: fit-content;
+            float: left;
+            padding-right: 10px;
+            margin-left: 10px;
+        }
+
+        .right{
+            border-left: 2px dashed gray;
+            padding-left: 10px;
+            height: 100%;
+            width: calc(100% - 171px);
+            float: left;
+        }
+
+        button{
+            border: 2px solid red;
+            border-radius: 10px;
+            color: red;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <b style="color:gray;">invoice page - projekt cz.2</b><br>
+    <a href="/">index</a>
+    <a href="/cars.html">edit/update cars</a>
+    <a href="/admin.html">generate invoice</a><br>
+</header>
+<hr style="width:100%;margin-left:0;border: 0;border-top: 2px dashed gray;">
+<div class="main">
+    <div class="left">
+        <button id="generuj">generuj losowo bazę<br>samochodów</button>
+    </div>
+    <div class="right">
+        <table id="content"></table>
+    </div>
+</div>
+
+<script>
+    window.onload = async () => {
+        let json = await fetchPostAsync()
+        json.forEach(element => document.getElementById("content").innerHTML += `<tr>
+            <td>${element.id}</td>
+            <td>${element.uuid}</td>
+            <td>${element.model}</td>
+            <td>${element.rok}</td>
+            <td>${JSON.stringify(element.airbags[0].description).slice(1,-1)}:${JSON.stringify(element.airbags[0].value)}<br>
+            ${JSON.stringify(element.airbags[1].description).slice(1,-1)}:${JSON.stringify(element.airbags[1].value)}<br>
+            ${JSON.stringify(element.airbags[2].description).slice(1,-1)}:${JSON.stringify(element.airbags[2].value)}<br>
+            ${JSON.stringify(element.airbags[3].description).slice(1,-1)}:${JSON.stringify(element.airbags[3].value)}<br></td>
+            <td><div class="box" style="background:${element.kolor};"></div></td>
+            <td><button onclick="callGenerateInvoice(\'${element.uuid}\')">generuj fakturę VAT</button></td>
+            <td>${element.generatedInvoice == true ? `<a href="/invoices?uuid=${element.uuid}">pobierz</a>`:``}</td></tr>`);
+    };
+
+    fetchPostAsync = async () => {
+        const options = {
+            method: "POST"
+        };
+
+        let response = await fetch("/cars", options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json()
+    }
+
+    document.getElementById("generuj").onclick = async () => {
+        let json = await generateCars()
+
+        document.getElementById("content").innerHTML = ''
+        json.forEach(element => document.getElementById("content").innerHTML += `<tr>
+            <td>${element.id}</td>
+            <td>${element.uuid}</td>
+            <td>${element.model}</td>
+            <td>${element.rok}</td>
+            <td>${JSON.stringify(element.airbags[0].description).slice(1,-1)}:${JSON.stringify(element.airbags[0].value)}<br>
+            ${JSON.stringify(element.airbags[1].description).slice(1,-1)}:${JSON.stringify(element.airbags[1].value)}<br>
+            ${JSON.stringify(element.airbags[2].description).slice(1,-1)}:${JSON.stringify(element.airbags[2].value)}<br>
+            ${JSON.stringify(element.airbags[3].description).slice(1,-1)}:${JSON.stringify(element.airbags[3].value)}<br></td>
+            <td><div class="box" style="background:${element.kolor};"></div></td>
+            <td><button onclick="callGenerateInvoice(\'${element.uuid}\')">generuj fakturę VAT</button></td>
+            <td>${element.generatedInvoice == true ? `<a href="/invoices?uuid=${element.uuid}">pobierz</a>`:``}</td></tr>`);
+    };
+
+    generateCars = async () => {
+        const options = {
+            method: "POST"
+        };
+
+        let response = await fetch("/generate", options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json()
+    }
+
+    async function callGenerateInvoice(uuid){
+        let json = await generateInvoice(uuid)
+
+        document.getElementById("content").innerHTML = ''
+        json.forEach(element => document.getElementById("content").innerHTML += `<tr>
+            <td>${element.id}</td>
+            <td>${element.uuid}</td>
+            <td>${element.model}</td>
+            <td>${element.rok}</td>
+            <td>${JSON.stringify(element.airbags[0].description).slice(1,-1)}:${JSON.stringify(element.airbags[0].value)}<br>
+            ${JSON.stringify(element.airbags[1].description).slice(1,-1)}:${JSON.stringify(element.airbags[1].value)}<br>
+            ${JSON.stringify(element.airbags[2].description).slice(1,-1)}:${JSON.stringify(element.airbags[2].value)}<br>
+            ${JSON.stringify(element.airbags[3].description).slice(1,-1)}:${JSON.stringify(element.airbags[3].value)}<br></td>
+            <td><div class="box" style="background:${element.kolor};"></div></td>
+            <td><button onclick="callGenerateInvoice(\'${element.uuid}\')">generuj fakturę VAT</button></td>
+            <td>${element.generatedInvoice == true ? `<a href="/invoices?uuid=${element.uuid}">pobierz</a>`:``}</td></tr>`);
+    }
+
+    generateInvoice = async (uuid) => {
+        const options = {
+            method: "POST",
+            body: JSON.stringify(uuid)
+        };
+
+        let response = await fetch("/invoice", options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json()
+    }
+</script>
+
+</body>
+</html>

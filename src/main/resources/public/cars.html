@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Cars</title>
+    <style>
+        body{
+            font-family: "Arial";
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        header{
+            width: fit-content;
+            margin-left: 10px;
+            margin-top: 10px;
+        }
+
+        a{
+            margin-left: 10px;
+            font-weight: 600;
+            color: blue;
+        }
+
+        .box{
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            margin: auto;
+        }
+
+        table{
+            width: 100%;
+        }
+
+        td{
+            text-align: center;
+        }
+
+        button{
+            border: 2px solid red;
+            border-radius: 10px;
+            color: red;
+            cursor: pointer;
+        }
+
+        .editBox{
+            position: absolute;
+            width: 240px;
+            height: 100px;
+            top:0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            margin: auto;
+            background-color: white;
+            display: inline-block;
+        }
+
+        #editBackground{
+            background-color: rgba(100,100,100,0.5);
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            display: none;
+            margin-top: -10px;
+        }
+
+        input[type=text]{
+            margin-top: 10px;
+            margin-left: 10px;
+            border: 1px solid gray;
+            border-radius: 0;
+            width: 100px;
+            height: 30px;
+        }
+
+        select{
+            margin-top: 10px;
+            margin-left: 10px;
+            background-color: lightgray;
+            width: 100px;
+            height: 30px;
+        }
+    </style>
+</head>
+<body>
+    <div id="editBackground">
+
+    </div>
+
+    <header>
+        <b style="color:gray;">index page - post - projekt cz. 1b</b><br>
+        <a href="/">index</a>
+        <a href="/cars.html">edit/update cars</a>
+        <a href="/admin.html">generate invoice</a><br>
+    </header>
+    <hr style="width:100%;margin-left:0;border-top: 2px dashed gray">
+
+    <table id="content"></table>
+
+    <script>
+        window.onload = async () => {
+            let json = await fetchPostAsync()
+            json.forEach(element => document.getElementById("content").innerHTML += `<tr>
+            <td>${element.id}</td>
+            <td>${element.uuid}</td>
+            <td>${element.model}</td>
+            <td>${element.rok}</td>
+            <td>${JSON.stringify(element.airbags[0].description).slice(1,-1)}:${JSON.stringify(element.airbags[0].value)}<br>
+            ${JSON.stringify(element.airbags[1].description).slice(1,-1)}:${JSON.stringify(element.airbags[1].value)}<br>
+            ${JSON.stringify(element.airbags[2].description).slice(1,-1)}:${JSON.stringify(element.airbags[2].value)}<br>
+            ${JSON.stringify(element.airbags[3].description).slice(1,-1)}:${JSON.stringify(element.airbags[3].value)}<br></td>
+            <td><div class="box" style="background:${element.kolor};"></div></td>
+            <td><button onclick="callDeleteCar(\'${element.uuid}\')">delete car</button></td>
+            <td><button onclick="showUpdateBox(\'${element.uuid}\',\'${element.model}\',\'${element.rok}\')">update car</button></td></tr>`);
+        };
+
+        fetchPostAsync = async () => {
+            const options = {
+                method: "POST"
+            };
+
+            let response = await fetch("/cars", options)
+
+            if (!response.ok)
+                return response.status
+            else
+                return await response.json()
+        }
+
+        async function callDeleteCar(uuid) {
+            let json = await deleteCar(uuid)
+
+            document.getElementById("content").innerHTML = ''
+            json.forEach(element => document.getElementById("content").innerHTML += `<tr>
+            <td>${element.id}</td>
+            <td>${element.uuid}</td>
+            <td>${element.model}</td>
+            <td>${element.rok}</td>
+            <td>${JSON.stringify(element.airbags[0].description).slice(1,-1)}:${JSON.stringify(element.airbags[0].value)}<br>
+            ${JSON.stringify(element.airbags[1].description).slice(1,-1)}:${JSON.stringify(element.airbags[1].value)}<br>
+            ${JSON.stringify(element.airbags[2].description).slice(1,-1)}:${JSON.stringify(element.airbags[2].value)}<br>
+            ${JSON.stringify(element.airbags[3].description).slice(1,-1)}:${JSON.stringify(element.airbags[3].value)}<br></td>
+            <td><div class="box" style="background:${element.kolor};"></div></td>
+            <td><button onclick="callDeleteCar(\'${element.uuid}\')">delete car</button></td>
+            <td><button onclick="showUpdateBox(\'${element.uuid}\',\'${element.model}\',\'${element.rok}\')">update car</button></td></tr>`);
+        }
+
+        deleteCar = async (uuid) => {
+            const options = {
+                method: "POST",
+                body: JSON.stringify(uuid)
+            };
+
+            let response = await fetch("/delete", options)
+
+            if (!response.ok)
+                return response.status
+            else
+                return await response.json()
+        }
+
+        async function showUpdateBox(uuid, model, rok){
+            document.getElementById("editBackground").style.display = "inline-block";
+            document.getElementById("editBackground").innerHTML = '<div class="editBox">' +
+                '<input type="text" id="model" value='+ model +'>' +
+                '<select id="rok">' +
+                `<option value="2001" ${rok == 2001 ? 'selected':''}>2001</option>` +
+                `<option value="2002" ${rok == 2002 ? 'selected':''}>2002</option>` +
+                `<option value="2003" ${rok == 2003 ? 'selected':''}>2003</option>` +
+                `<option value="2004" ${rok == 2004 ? 'selected':''}>2004</option>` +
+                `<option value="2005" ${rok == 2005 ? 'selected':''}>2005</option>` +
+                '</select>' +
+                '<table>' +
+                `<tr><td><button onclick="callUpdateCar(\'${uuid}\', document.getElementById(\'model\').value, document.getElementById(\'rok\').value)" style="margin-top: 15px">update</button>` +
+                '<td><button onclick="cancelFunction()" style="margin-top: 15px">cancel</button></td></tr>' +
+                '</table></div>';
+        }
+
+        function cancelFunction(){
+            document.getElementById("editBackground").style.display = "none";
+        }
+
+        async function callUpdateCar(uuid, model, rok) {
+            let json = await updateCar(uuid, model, rok)
+
+            document.getElementById("editBackground").style.display = "none";
+            document.getElementById("content").innerHTML = ''
+            json.forEach(element => document.getElementById("content").innerHTML += `<tr>
+            <td>${element.id}</td>
+            <td>${element.uuid}</td>
+            <td>${element.model}</td>
+            <td>${element.rok}</td>
+            <td>${JSON.stringify(element.airbags[0].description).slice(1,-1)}:${JSON.stringify(element.airbags[0].value)}<br>
+            ${JSON.stringify(element.airbags[1].description).slice(1,-1)}:${JSON.stringify(element.airbags[1].value)}<br>
+            ${JSON.stringify(element.airbags[2].description).slice(1,-1)}:${JSON.stringify(element.airbags[2].value)}<br>
+            ${JSON.stringify(element.airbags[3].description).slice(1,-1)}:${JSON.stringify(element.airbags[3].value)}<br></td>
+            <td><div class="box" style="background:${element.kolor};"></div></td>
+            <td><button onclick="callDeleteCar(\'${element.uuid}\')">delete car</button></td>
+            <td><button onclick="showUpdateBox(\'${element.uuid}\',\'${element.model}\',\'${element.rok}\')">update car</button></td></tr>`);
+        }
+
+        updateCar = async (uuid, model, rok) => {
+            const newCar = {uuid, model, rok}
+
+            const options = {
+                method: "POST",
+                body: JSON.stringify(newCar)
+            };
+
+            let response = await fetch("/update", options)
+
+            if (!response.ok)
+                return response.status
+            else
+                return await response.json()
+        }
+    </script>
+</body>
+</html>

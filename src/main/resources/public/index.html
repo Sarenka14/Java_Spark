@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Index</title>
+    <style>
+        body{
+            font-family: "Arial";
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        header{
+            width: fit-content;
+            margin-left: 10px;
+            margin-top: 10px;
+        }
+
+        a{
+            margin-left: 10px;
+            font-weight: 600;
+            color: blue;
+        }
+
+        .main{
+            overflow: hidden;
+        }
+
+        .left {
+            width: fit-content;
+            float: left;
+            padding-right: 10px;
+            margin-left: 10px;
+        }
+
+        .right{
+            border-left: 2px dashed gray;
+            padding-left: 10px;
+            height: 100%;
+            float: left;
+        }
+
+        button{
+            border: 2px solid red;
+            border-radius: 10px;
+            color: red;
+            cursor: pointer;
+        }
+
+        input[type=text]{
+            margin: 10px;
+            border: 1px solid gray;
+            border-radius: 0;
+            width: 100px;
+            height: 30px;
+        }
+
+        select{
+            margin: 10px;
+            background-color: lightgray;
+            width: 100px;
+            height: 30px;
+        }
+
+        input[type=checkbox] {
+            margin: 10px;
+            width: 30px;
+            height: 30px;
+        }
+
+        input[type=color]{
+            margin: 10px;
+            width: 100px;
+            height: 30px;
+        }
+
+        .dziecko{
+            float: left;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <b style="color:gray;">index page - post - projekt cz. 1a</b><br>
+        <a href="/">index</a>
+        <a href="/cars.html">edit/update cars</a>
+        <a href="/admin.html">generate invoice</a><br>
+    </header>
+    <hr style="width:100%;margin-left:0;border: 0;border-top: 2px dashed gray;">
+    <div class="main">
+        <div class="left">
+            <button id="dodaj">dodaj na serwer</button>
+        </div>
+        <div class="right">
+            <input type="text" id="model">model<br>
+            <select id="rok">
+                <option value="2001">2001</option>
+                <option value="2002">2002</option>
+                <option value="2003">2003</option>
+                <option value="2004">2004</option>
+                <option value="2005">2005</option>
+            </select>rok<br>
+            <div class="main">
+                <div class="dziecko">
+                    <input type="checkbox" id="kierowca">
+                    <input type="checkbox" id="pasażer">
+                    <input type="checkbox" id="kanapa">
+                    <input type="checkbox" id="boczne">
+                </div>
+                <div class="dziecko">
+                    poduszki powietrzne:<br>kierowca | pasażer | tylna kanapa | boczne z tyłu:
+                </div>
+            </div>
+            <input type="color" id="kolor">kolor
+        </div>
+    </div>
+
+    <script>
+        document.getElementById("dodaj").onclick = async () => {
+            let json = await fetchPostAsync()
+            alert(JSON.stringify(json, null, 2))
+        };
+
+        fetchPostAsync = async () => {
+            const car = {
+                model: document.getElementById("model").value,
+                rok: document.getElementById("rok").value,
+                airbags: [
+                    {description: "kierowca", value: document.getElementById("kierowca").checked},
+                    {description: "pasażer", value: document.getElementById("pasażer").checked},
+                    {description: "kanapa", value: document.getElementById("kanapa").checked},
+                    {description: "boczne", value: document.getElementById("boczne").checked}
+                ],
+                kolor: document.getElementById("kolor").value
+            }
+
+            const options = {
+                method: "POST",
+                body: JSON.stringify(car),
+            };
+
+            let response = await fetch("/add", options)
+
+            if (!response.ok)
+                return response.status
+            else
+                return await response.json()
+        }
+    </script>
+</body>
+</html>
