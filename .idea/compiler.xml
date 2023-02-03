@@ -6,11 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="Java06" />
+        <module name="Java_Spark" />
       </profile>
     </annotationProcessing>
     <bytecodeTargetLevel>
-      <module name="Java06" target="18" />
+      <module name="Java_Spark" target="18" />
     </bytecodeTargetLevel>
   </component>
 </project>
