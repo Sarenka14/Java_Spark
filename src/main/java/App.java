@@ -12,10 +12,7 @@ import spark.Request;
 import spark.Response;
 
 import java.awt.*;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -27,6 +24,8 @@ public class App {
     public static int carid = 1;
 
     static ArrayList<Car> cars = new ArrayList<>();
+
+    static ArrayList<Invoice> allCarsInvoices = new ArrayList<>();
 
     public static void main(String[] args) {
         String projectDir = System.getProperty("user.dir");
@@ -48,6 +47,25 @@ public class App {
         post("/invoice", App::generateInvoice);
 
         get("/invoices", App::downloadInvoice);
+
+        get("/thumb", (req, res) -> {
+            File file = new File("images/" + req.queryParams("model") + ".jpg");
+            res.type("image/jpeg");
+
+            OutputStream outputStream = null;
+            outputStream = res.raw().getOutputStream();
+
+            outputStream.write(Files.readAllBytes(Path.of("images/" + req.queryParams("model") + ".jpg")));
+            outputStream.flush();
+
+            return outputStream;
+        });
+
+        post("/getAllCarsInvoices", App::resAllCarsInvoices);
+
+        post("/generateAllCarsInvoice", App::generateAllCarsInvoice);
+
+        get("/downloadAllCarsInvoice", App::downloadAllCarsInvoice);
     }
 
     static String addCar(Request req, Response res){
@@ -100,13 +118,13 @@ public class App {
     static String generateCars(Request req, Response res){
         Gson gson = new Gson();
         cars.clear();
+
         for(int i = 0; i < (Math.random() * 9) + 1; i++){
             Car auto = new Car();
             auto.setUuid(String.valueOf(Generators.randomBasedGenerator().generate()));
             String[] models = {"Fiat", "BMW", "Audi", "Opel"};
             auto.setModel(models[(int) (Math.random() * (4))]);
-            int[] years = {2001, 2002, 2003, 2004, 2005};
-            auto.setRok(years[(int) (Math.random() * (5))]);
+            auto.setRok((int) ((Math.random() * 5) + 2000));
             String[] airbagDescriptions = {"kierowca", "pasażer", "kanapa", "boczne"};
 
             for(int j = 0; j < 4; j++){
@@ -210,6 +228,51 @@ public class App {
         }
         try {
             outputStream.write(Files.readAllBytes(Path.of("invoices/" + req.queryParams("uuid") + ".pdf")));
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        return "ok";
+    }
+
+    private static Object resAllCarsInvoices(Request req, Response res) {
+        Gson gson = new Gson();
+
+        res.type("application/json");
+        return gson.toJson(allCarsInvoices, ArrayList.class);
+    }
+
+    private static Object generateAllCarsInvoice(Request req, Response res) {
+        Gson gson = new Gson();
+
+        Invoice faktura = new Invoice(req.body());
+
+        faktura.list.clear();
+
+        for(int i = 0; i < cars.size(); i++){
+            faktura.list.add(cars.get(i));
+        }
+
+        allCarsInvoices.add(faktura);
+
+        Invoices.makeAllCarsInvoice(faktura);
+
+        res.type("application/json");
+        return gson.toJson(allCarsInvoices, ArrayList.class);
+    }
+
+    private static Object downloadAllCarsInvoice(Request req, Response res) {
+        res.type("application/octet-stream");
+        res.header("Content-Disposition", "attachment; filename=invoice_all_cars_" + req.queryParams("time") + ".pdf");
+
+        OutputStream  outputStream = null;
+        try {
+            outputStream = res.raw().getOutputStream();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        try {
+            outputStream.write(Files.readAllBytes(Path.of("invoices/invoice_all_cars_" + req.queryParams("time") + ".pdf")));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

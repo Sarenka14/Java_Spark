@@ -2,9 +2,280 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Search</title>
+    <style>
+        body{
+            font-family: "Arial";
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        header{
+            width: fit-content;
+            margin-left: 10px;
+            margin-top: 10px;
+        }
+
+        a{
+            margin-left: 10px;
+            font-weight: 600;
+            color: blue;
+        }
+
+        .box{
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            margin: auto;
+        }
+
+        table{
+            width: 100%;
+        }
+
+        td{
+            text-align: center;
+        }
+
+        .main{
+            overflow: hidden;
+        }
+
+        .left {
+            width: fit-content;
+            float: left;
+            padding-right: 10px;
+            margin-left: 10px;
+        }
+
+        .right{
+            border-left: 2px dashed gray;
+            padding-left: 10px;
+            height: 100%;
+            width: calc(100% - 179px);
+            float: left;
+        }
+
+        button{
+            margin: auto;
+            border: 2px solid red;
+            border-radius: 10px;
+            color: red;
+            cursor: pointer;
+            width: 146px;
+        }
+
+        img{
+            height: 50px;
+            width: 50px;
+            object-fit: cover;
+            border-radius: 10px;
+            margin: auto;
+        }
+
+        .niebieski{
+            margin-top: 10px;
+            color: white;
+            background-color: blue;
+            border: 2px solid blue;
+            border-radius: 10px;
+        }
+
+        select{
+            margin: 20px;
+            background-color: lightgray;
+            width: 100px;
+            height: 30px;
+        }
+
+        input[type=text]{
+            margin: 20px;
+            border: 1px solid gray;
+            border-radius: 0;
+            width: 100px;
+            height: 30px;
+        }
+    </style>
 </head>
 <body>
+<header>
+    <b style="color:gray;">search invoices page - projekt cz.3</b><br>
+    <a href="/">index</a>
+    <a href="/cars.html">edit/update cars</a>
+    <a href="/admin.html">generate invoice</a>
+    <a href="/search.html">search invoices</a><br>
+</header>
+<hr style="width:100%;margin-left:0;border: 0;border-top: 2px dashed gray;">
+<div class="main">
+    <div class="left">
+        <button id="generuj">generuj losowo bazę<br>samochodów</button><br>
+        <button onclick="callGenerateAllCarsInvoice()" class="niebieski">faktura za wszystkie<br>auta</button><br>
+        <div id="allCarsInvoices"></div><br>
+        <select id="rok">
+            <option value="2001">2001</option>
+            <option value="2002">2002</option>
+            <option value="2003">2003</option>
+            <option value="2004">2004</option>
+            <option value="2005">2005</option>
+        </select><br>
+        <button class="niebieski">faktura - auta z danego<br>rocznika</button><br>
+        <div id="givenYear"></div><br>
+        <input type="text" id="cenaMin"><br>
+        <input type="text" id="cenaMax"><br>
+        <button id="danyZakresCen" class="niebieski">faktura - auta z danego<br>zakresu cen</button>
+        <div id="priceRange"></div><br>
+    </div>
+    <div class="right">
+        <table id="content"></table>
+    </div>
+</div>
+
+<script>
+    window.onload = async () => {
+        let json = await fetchPostAsync()
+        json.forEach(element => document.getElementById("content").innerHTML += `<tr>
+            <td>${element.id}</td>
+            <td>${element.model}</td>
+            <td>${element.rok}</td>
+            <td>${JSON.stringify(element.airbags[0].description).slice(1,-1)}:${JSON.stringify(element.airbags[0].value)}<br>
+            ${JSON.stringify(element.airbags[1].description).slice(1,-1)}:${JSON.stringify(element.airbags[1].value)}<br>
+            ${JSON.stringify(element.airbags[2].description).slice(1,-1)}:${JSON.stringify(element.airbags[2].value)}<br>
+            ${JSON.stringify(element.airbags[3].description).slice(1,-1)}:${JSON.stringify(element.airbags[3].value)}<br></td>
+            <td><div class="box" style="background:${element.kolor};"></div></td>
+            <td><img src='thumb?model=${element.model}'/></td>
+            <td>${element.dateString}</td>
+            <td>${element.price}</td>
+            <td>${element.VAT}</td></tr>`);
+
+        let jsonAllCarsInvoices = await onloadAllCarsInvoices()
+        for(let i = 0; i < Object.keys(jsonAllCarsInvoices).length; i++){
+            if(i %2 !== 0 && i !== 0){
+                document.getElementById("allCarsInvoices").innerHTML += `<span title="faktura za wszystkie auta -> ${jsonAllCarsInvoices[i].title}"><a href="/downloadAllCarsInvoice?time=${jsonAllCarsInvoices[i].time}">pobierz</a></span><br>`
+            }else {
+                document.getElementById("allCarsInvoices").innerHTML += `<span title="faktura za wszystkie auta -> ${jsonAllCarsInvoices[i].title}"><a href="/downloadAllCarsInvoice?time=${jsonAllCarsInvoices[i].time}">pobierz</a></span>`
+            }
+        }
+    };
+
+    fetchPostAsync = async () => {
+        const options = {
+            method: "POST"
+        };
+
+        let response = await fetch("/cars", options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json()
+    }
+
+    onloadAllCarsInvoices = async () => {
+        const options = {
+            method: "POST"
+        };
+
+        let response = await fetch("/getAllCarsInvoices", options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json()
+    }
+
+    /*onloadYearInvoces = async () => {
+        const options = {
+            method: "POST"
+        };
+
+        let response = await fetch("/cars", options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json()
+    }
+
+    onloadPriceRangeInvoces = async () => {
+        const options = {
+            method: "POST"
+        };
+
+        let response = await fetch("/cars", options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json()
+    }*/
+
+    document.getElementById("generuj").onclick = async () => {
+        let json = await generateCars()
+
+        document.getElementById("content").innerHTML = ''
+        json.forEach(element => document.getElementById("content").innerHTML += `<tr>
+            <td>${element.id}</td>
+            <td>${element.model}</td>
+            <td>${element.rok}</td>
+            <td>${JSON.stringify(element.airbags[0].description).slice(1,-1)}:${JSON.stringify(element.airbags[0].value)}<br>
+            ${JSON.stringify(element.airbags[1].description).slice(1,-1)}:${JSON.stringify(element.airbags[1].value)}<br>
+            ${JSON.stringify(element.airbags[2].description).slice(1,-1)}:${JSON.stringify(element.airbags[2].value)}<br>
+            ${JSON.stringify(element.airbags[3].description).slice(1,-1)}:${JSON.stringify(element.airbags[3].value)}<br></td>
+            <td><div class="box" style="background:${element.kolor};"></div></td>
+            <td><img src='thumb?model=${element.model}'/></td>
+            <td>${element.dateString}</td>
+            <td>${element.price}</td>
+            <td>${element.VAT}</td></tr>`);
+    };
+
+    generateCars = async () => {
+        const options = {
+            method: "POST"
+        };
+
+        let response = await fetch("/generate", options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json()
+    }
+
+    async function callGenerateAllCarsInvoice(){
+        let json = await generateAllCarsInvoice()
+
+        document.getElementById("allCarsInvoices").innerHTML = '';
+        for(let i = 0; i < Object.keys(json).length; i++){
+            if(i %2 !== 0 && i !== 0){
+                document.getElementById("allCarsInvoices").innerHTML += `<span title="faktura za wszystkie auta -> ${json[i].title}"><a href="/downloadAllCarsInvoice?time=${json[i].time}">pobierz</a></span><br>`
+            }else {
+                document.getElementById("allCarsInvoices").innerHTML += `<span title="faktura za wszystkie auta -> ${json[i].title}"><a href="/downloadAllCarsInvoice?time=${json[i].time}">pobierz</a></span>`
+            }
+        }
+    }
+
+    generateAllCarsInvoice = async () => {
+        var currentdate = new Date();
+        var datetime = currentdate.getFullYear() + "/"
+            + (currentdate.getMonth()+1)  + "/"
+            + currentdate.getDate() + " "
+            + currentdate.getHours() + ":"
+            + currentdate.getMinutes() + ":"
+            + currentdate.getSeconds();
+
+        const options = {
+            method: "POST",
+            body: datetime
+        };
+
+        let response = await fetch("/generateAllCarsInvoice", options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json()
+    }
+</script>
 
 </body>
 </html>

@@ -22,6 +22,14 @@ public class Car{
 
     private boolean generatedInvoice = false;
 
+    CustomDate dateInt = new CustomDate(Helpers.year(), Helpers.month(), Helpers.day());
+
+    String dateString = String.valueOf(dateInt.getYear()) + "/" + String.valueOf(dateInt.getMonth()) + "/" + String.valueOf(dateInt.getDay());
+
+    int price = Helpers.price();
+
+    int VAT = Helpers.VAT();
+
     public Car(){
         this.id = App.carid++;
     }
@@ -60,5 +68,13 @@ public class Car{
 
     public void setGeneratedInvoice(boolean generatedInvoice) {
         this.generatedInvoice = generatedInvoice;
+    }
+
+    public int getPrice() {
+        return price;
+    }
+
+    public int getVAT() {
+        return VAT;
     }
 }
