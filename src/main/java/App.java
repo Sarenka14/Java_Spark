@@ -3,6 +3,9 @@ import static spark.Spark.*;
 
 import com.fasterxml.uuid.Generators;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.itextpdf.text.*;
 import com.itextpdf.text.Font;
@@ -26,6 +29,10 @@ public class App {
     static ArrayList<Car> cars = new ArrayList<>();
 
     static ArrayList<Invoice> allCarsInvoices = new ArrayList<>();
+
+    static ArrayList<Invoice> yearInvoices = new ArrayList<>();
+
+    static ArrayList<Invoice> rangeInvoices = new ArrayList<>();
 
     public static void main(String[] args) {
         String projectDir = System.getProperty("user.dir");
@@ -65,7 +72,15 @@ public class App {
 
         post("/generateAllCarsInvoice", App::generateAllCarsInvoice);
 
-        get("/downloadAllCarsInvoice", App::downloadAllCarsInvoice);
+        post("/getYearInvoices", App::resYearInvoices);
+
+        post("/generateYearInvoice", App::generateYearInvoice);
+
+        post("/getRangeInvoices", App::resRangeInvoices);
+
+        post("/generateRangeInvoice", App::generateRangeInvoice);
+
+        get("/downloadCarsInvoice", App::downloadCarsInvoice);
     }
 
     static String addCar(Request req, Response res){
@@ -124,7 +139,7 @@ public class App {
             auto.setUuid(String.valueOf(Generators.randomBasedGenerator().generate()));
             String[] models = {"Fiat", "BMW", "Audi", "Opel"};
             auto.setModel(models[(int) (Math.random() * (4))]);
-            auto.setRok((int) ((Math.random() * 5) + 2000));
+            auto.setRok((int) ((Math.random() * 5) + 2001));
             String[] airbagDescriptions = {"kierowca", "pasażer", "kanapa", "boczne"};
 
             for(int j = 0; j < 4; j++){
@@ -255,15 +270,89 @@ public class App {
 
         allCarsInvoices.add(faktura);
 
-        Invoices.makeAllCarsInvoice(faktura);
+        Invoices.makeInvoice(faktura, "Faktura za wszystkie auta", "invoices/invoice_all_cars_" + faktura.getTime() + ".pdf");
 
         res.type("application/json");
         return gson.toJson(allCarsInvoices, ArrayList.class);
     }
 
-    private static Object downloadAllCarsInvoice(Request req, Response res) {
+    private static Object resYearInvoices(Request req, Response res) {
+        Gson gson = new Gson();
+
+        res.type("application/json");
+        return gson.toJson(yearInvoices, ArrayList.class);
+    }
+
+    private static Object generateYearInvoice(Request req, Response res) {
+        Gson gson = new Gson();
+
+        JsonObject json = new JsonParser().parse(req.body()).getAsJsonObject();
+        JsonElement datetime = json.get("datetime");
+        JsonElement year = json.get("rok");
+
+        String dataczas = datetime.getAsString();
+        int rok = Integer.parseInt(year.getAsString());
+
+        Invoice faktura = new Invoice(dataczas, rok);
+
+        faktura.list.clear();
+
+        for(int i = 0; i < cars.size(); i++){
+            if(cars.get(i).getRok() == rok){
+                faktura.list.add(cars.get(i));
+            }
+        }
+
+        yearInvoices.add(faktura);
+
+        Invoices.makeInvoice(faktura, "Faktura za auta z roku: " + rok, "invoices/invoice_all_cars_from_year_" + faktura.getTime() + ".pdf");
+
+        res.type("application/json");
+        return gson.toJson(yearInvoices, ArrayList.class);
+    }
+
+    private static Object resRangeInvoices(Request req, Response res) {
+        Gson gson = new Gson();
+
+        res.type("application/json");
+        return gson.toJson(rangeInvoices, ArrayList.class);
+    }
+
+    private static Object generateRangeInvoice(Request req, Response res) {
+        Gson gson = new Gson();
+
+        JsonObject json = new JsonParser().parse(req.body()).getAsJsonObject();
+        JsonElement datetime = json.get("datetime");
+        JsonElement min = json.get("min");
+        JsonElement max = json.get("max");
+
+        String dataczas = datetime.getAsString();
+        int intMin = Integer.parseInt(min.getAsString());
+        int intMax = Integer.parseInt(max.getAsString());
+
+        Invoice faktura = new Invoice(dataczas, intMin, intMax);
+
+        faktura.list.clear();
+
+        for(int i = 0; i < cars.size(); i++){
+            if(cars.get(i).getPrice() >= intMin && cars.get(i).getPrice() <= intMax){
+                faktura.list.add(cars.get(i));
+            }
+        }
+
+        rangeInvoices.add(faktura);
+
+        System.out.println("Faktura za auta w cenach: " + intMin + "-" + intMax + " PLN");
+
+        Invoices.makeInvoice(faktura, "Faktura za auta w cenach: " + intMin + "-" + intMax + " PLN", "invoices/invoice_all_cars_by_price_" + faktura.getTime() + ".pdf");
+
+        res.type("application/json");
+        return gson.toJson(rangeInvoices, ArrayList.class);
+    }
+
+    private static Object downloadCarsInvoice(Request req, Response res) {
         res.type("application/octet-stream");
-        res.header("Content-Disposition", "attachment; filename=invoice_all_cars_" + req.queryParams("time") + ".pdf");
+        res.header("Content-Disposition", "attachment; filename=" + req.queryParams("title") + ".pdf");
 
         OutputStream  outputStream = null;
         try {
@@ -272,7 +361,7 @@ public class App {
             throw new RuntimeException(e);
         }
         try {
-            outputStream.write(Files.readAllBytes(Path.of("invoices/invoice_all_cars_" + req.queryParams("time") + ".pdf")));
+            outputStream.write(Files.readAllBytes(Path.of("invoices/" + req.queryParams("title") + ".pdf")));
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

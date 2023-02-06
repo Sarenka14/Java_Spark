@@ -118,12 +118,12 @@
             <option value="2004">2004</option>
             <option value="2005">2005</option>
         </select><br>
-        <button class="niebieski">faktura - auta z danego<br>rocznika</button><br>
-        <div id="givenYear"></div><br>
+        <button onclick="callGenerateYearInvoice(document.getElementById('rok').value)" class="niebieski">faktura - auta z danego<br>rocznika</button><br>
+        <div id="yearInvoices"></div><br>
         <input type="text" id="cenaMin"><br>
         <input type="text" id="cenaMax"><br>
-        <button id="danyZakresCen" class="niebieski">faktura - auta z danego<br>zakresu cen</button>
-        <div id="priceRange"></div><br>
+        <button onclick="callGenerateRangeInvoice(document.getElementById('cenaMin').value, document.getElementById('cenaMax').value)" class="niebieski">faktura - auta z danego<br>zakresu cen</button>
+        <div id="rangeInvoices"></div><br>
     </div>
     <div class="right">
         <table id="content"></table>
@@ -150,9 +150,27 @@
         let jsonAllCarsInvoices = await onloadAllCarsInvoices()
         for(let i = 0; i < Object.keys(jsonAllCarsInvoices).length; i++){
             if(i %2 !== 0 && i !== 0){
-                document.getElementById("allCarsInvoices").innerHTML += `<span title="faktura za wszystkie auta -> ${jsonAllCarsInvoices[i].title}"><a href="/downloadAllCarsInvoice?time=${jsonAllCarsInvoices[i].time}">pobierz</a></span><br>`
+                document.getElementById("allCarsInvoices").innerHTML += `<span title="faktura za wszystkie auta -> ${jsonAllCarsInvoices[i].title}"><a href="/downloadCarsInvoice?title=invoice_all_cars_${jsonAllCarsInvoices[i].time}">pobierz</a></span><br>`
             }else {
-                document.getElementById("allCarsInvoices").innerHTML += `<span title="faktura za wszystkie auta -> ${jsonAllCarsInvoices[i].title}"><a href="/downloadAllCarsInvoice?time=${jsonAllCarsInvoices[i].time}">pobierz</a></span>`
+                document.getElementById("allCarsInvoices").innerHTML += `<span title="faktura za wszystkie auta -> ${jsonAllCarsInvoices[i].title}"><a href="/downloadCarsInvoice?title=invoice_all_cars_${jsonAllCarsInvoices[i].time}">pobierz</a></span>`
+            }
+        }
+
+        let jsonYearInvoices = await onloadYearInvoices()
+        for(let i = 0; i < Object.keys(jsonYearInvoices).length; i++){
+            if(i %2 !== 0 && i !== 0){
+                document.getElementById("yearInvoices").innerHTML += `<span title="faktura za rocznik -> ${jsonYearInvoices[i].rok}"><a href="/downloadCarsInvoice?title=invoice_all_cars_from_year_${jsonYearInvoices[i].time}">pobierz</a></span><br>`
+            }else {
+                document.getElementById("yearInvoices").innerHTML += `<span title="faktura za rocznik -> ${jsonYearInvoices[i].rok}"><a href="/downloadCarsInvoice?title=invoice_all_cars_from_year_${jsonYearInvoices[i].time}">pobierz</a></span>`
+            }
+        }
+
+        let jsonRangeInvoices = await onloadRangeInvoices()
+        for(let i = 0; i < Object.keys(jsonRangeInvoices).length; i++){
+            if(i %2 !== 0 && i !== 0){
+                document.getElementById("rangeInvoices").innerHTML += `<span title="faktura za ceny ${jsonRangeInvoices[i].minPrice}-${jsonRangeInvoices[i].maxPrice} -> ${jsonRangeInvoices[i].title}"><a href="/downloadCarsInvoice?title=invoice_all_cars_by_price_${jsonRangeInvoices[i].time}">pobierz</a></span><br>`
+            }else {
+                document.getElementById("rangeInvoices").innerHTML += `<span title="faktura za ceny ${jsonRangeInvoices[i].minPrice}-${jsonRangeInvoices[i].maxPrice} -> ${jsonRangeInvoices[i].title}"><a href="/downloadCarsInvoice?title=invoice_all_cars_by_price_${jsonRangeInvoices[i].time}">pobierz</a></span>`
             }
         }
     };
@@ -183,12 +201,12 @@
             return await response.json()
     }
 
-    /*onloadYearInvoces = async () => {
+    onloadYearInvoices = async () => {
         const options = {
             method: "POST"
         };
 
-        let response = await fetch("/cars", options)
+        let response = await fetch("/getYearInvoices", options)
 
         if (!response.ok)
             return response.status
@@ -196,18 +214,18 @@
             return await response.json()
     }
 
-    onloadPriceRangeInvoces = async () => {
+    onloadRangeInvoices = async () => {
         const options = {
             method: "POST"
         };
 
-        let response = await fetch("/cars", options)
+        let response = await fetch("/getRangeInvoices", options)
 
         if (!response.ok)
             return response.status
         else
             return await response.json()
-    }*/
+    }
 
     document.getElementById("generuj").onclick = async () => {
         let json = await generateCars()
@@ -243,13 +261,14 @@
 
     async function callGenerateAllCarsInvoice(){
         let json = await generateAllCarsInvoice()
+        alert(`faktura za wszystkie auta wygenerowana`)
 
         document.getElementById("allCarsInvoices").innerHTML = '';
         for(let i = 0; i < Object.keys(json).length; i++){
             if(i %2 !== 0 && i !== 0){
-                document.getElementById("allCarsInvoices").innerHTML += `<span title="faktura za wszystkie auta -> ${json[i].title}"><a href="/downloadAllCarsInvoice?time=${json[i].time}">pobierz</a></span><br>`
+                document.getElementById("allCarsInvoices").innerHTML += `<span title="faktura za wszystkie auta -> ${json[i].title}"><a href="/downloadCarsInvoice?title=invoice_all_cars_${json[i].time}">pobierz</a></span><br>`
             }else {
-                document.getElementById("allCarsInvoices").innerHTML += `<span title="faktura za wszystkie auta -> ${json[i].title}"><a href="/downloadAllCarsInvoice?time=${json[i].time}">pobierz</a></span>`
+                document.getElementById("allCarsInvoices").innerHTML += `<span title="faktura za wszystkie auta -> ${json[i].title}"><a href="/downloadCarsInvoice?title=invoice_all_cars_${json[i].time}">pobierz</a></span>`
             }
         }
     }
@@ -269,6 +288,89 @@
         };
 
         let response = await fetch("/generateAllCarsInvoice", options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json()
+    }
+
+    async function callGenerateYearInvoice(rok){
+        let json = await generateYearInvoice(rok)
+        alert(`faktura za wszystkie auta z ${rok} wygenerowana`)
+
+        document.getElementById("yearInvoices").innerHTML = '';
+        for(let i = 0; i < Object.keys(json).length; i++){
+            if(i %2 !== 0 && i !== 0){
+                document.getElementById("yearInvoices").innerHTML += `<span title="faktura za rocznik -> ${json[i].rok}"><a href="/downloadCarsInvoice?title=invoice_all_cars_from_year_${json[i].time}">pobierz</a></span><br>`
+            }else {
+                document.getElementById("yearInvoices").innerHTML += `<span title="faktura za rocznik -> ${json[i].rok}"><a href="/downloadCarsInvoice?title=invoice_all_cars_from_year_${json[i].time}">pobierz</a></span>`
+            }
+        }
+    }
+
+    generateYearInvoice = async (rok) => {
+        var currentdate = new Date();
+        var datetime = currentdate.getFullYear() + "/"
+            + (currentdate.getMonth()+1)  + "/"
+            + currentdate.getDate() + " "
+            + currentdate.getHours() + ":"
+            + currentdate.getMinutes() + ":"
+            + currentdate.getSeconds();
+
+        const data = {
+            datetime: datetime,
+            rok: rok
+        }
+
+        const options = {
+            method: "POST",
+            body: JSON.stringify(data)
+        };
+
+        let response = await fetch("/generateYearInvoice", options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json()
+    }
+
+    async function callGenerateRangeInvoice(min, max){
+        let json = await generateRangeInvoice(min, max)
+        alert(`faktura za wszystkie auta od ${min} do ${max} PLN wygenerowana`)
+
+        document.getElementById("rangeInvoices").innerHTML = '';
+        for(let i = 0; i < Object.keys(json).length; i++){
+            if(i %2 !== 0 && i !== 0){
+                document.getElementById("rangeInvoices").innerHTML += `<span title="faktura za ceny ${json[i].minPrice}-${json[i].maxPrice} -> ${json[i].title}"><a href="/downloadCarsInvoice?title=invoice_all_cars_by_price_${json[i].time}">pobierz</a></span><br>`
+            }else {
+                document.getElementById("rangeInvoices").innerHTML += `<span title="faktura za ceny ${json[i].minPrice}-${json[i].maxPrice} -> ${json[i].title}"><a href="/downloadCarsInvoice?title=invoice_all_cars_by_price_${json[i].time}">pobierz</a></span>`
+            }
+        }
+    }
+
+    generateRangeInvoice = async (min, max) => {
+        var currentdate = new Date();
+        var datetime = currentdate.getFullYear() + "/"
+            + (currentdate.getMonth()+1)  + "/"
+            + currentdate.getDate() + " "
+            + currentdate.getHours() + ":"
+            + currentdate.getMinutes() + ":"
+            + currentdate.getSeconds();
+
+        const data = {
+            datetime: datetime,
+            min: min,
+            max: max
+        }
+
+        const options = {
+            method: "POST",
+            body: JSON.stringify(data)
+        };
+
+        let response = await fetch("/generateRangeInvoice", options)
 
         if (!response.ok)
             return response.status

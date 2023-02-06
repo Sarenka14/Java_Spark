@@ -7,9 +7,8 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 
 public class Invoices {
-    public static void makeAllCarsInvoice(Invoice faktura){
+    public static void makeInvoice(Invoice faktura, String zaCoFaktura, String path){
         Document document = new Document(); // dokument pdf
-        String path = "invoices/invoice_all_cars_" + faktura.getTime() + ".pdf"; // lokalizacja zapisu
         try {
             PdfWriter.getInstance(document, new FileOutputStream(path));
         } catch (DocumentException e) {
@@ -28,8 +27,8 @@ public class Invoices {
         Paragraph tytul = new Paragraph("FAKTURA: VAT/" + faktura.getTitle().replace(":","/").replace(" ","/"), fontFaktura); // paragraf
         Paragraph sprzedawca = new Paragraph(faktura.getSeller(), font); // paragraf
         Paragraph nabywca = new Paragraph(faktura.getBuyer(), font); // paragraf
-        Paragraph rok = new Paragraph("Faktura za wszystkie auta", fontCzerwony); // paragraf
-        Paragraph cena = new Paragraph("DO ZAPŁATY " + faktura.totalPrice(), fontFaktura);
+        Paragraph rok = new Paragraph(zaCoFaktura, fontCzerwony); // paragraf
+        Paragraph cena = new Paragraph("DO ZAPLATY " + faktura.totalPrice(), fontFaktura);
         Paragraph br = new Paragraph(".", fontBialy);
 
         try {

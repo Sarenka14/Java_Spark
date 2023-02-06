@@ -10,6 +10,12 @@ public class Invoice {
 
     private String buyer = "Nabywca: nabywca";
 
+    private int rok;
+
+    private int minPrice;
+
+    private int maxPrice;
+
     public static ArrayList<Car> list = new ArrayList<>();
 
     float doZaplaty = 0;
@@ -26,6 +32,17 @@ public class Invoice {
         this.title = title;
     }
 
+    public Invoice(String title, int rok) {
+        this.title = title;
+        this.rok = rok;
+    }
+
+    public Invoice(String title, int minPrice, int maxPrice) {
+        this.title = title;
+        this.minPrice = minPrice;
+        this.maxPrice = maxPrice;
+    }
+
     public int getTime() {
         return time;
     }
@@ -40,5 +57,17 @@ public class Invoice {
 
     public String getBuyer() {
         return buyer;
+    }
+
+    public int getRok() {
+        return rok;
+    }
+
+    public int getMinPrice() {
+        return minPrice;
+    }
+
+    public int getMaxPrice() {
+        return maxPrice;
     }
 }
