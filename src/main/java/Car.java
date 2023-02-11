@@ -17,6 +17,8 @@ public class Car{
 
     public ArrayList<Airbag> airbags = new ArrayList<>();
 
+    public ArrayList<String> photos = new ArrayList<>();
+
     private int rok;
     private String kolor;
 

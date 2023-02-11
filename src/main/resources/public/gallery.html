@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Gallery</title>
+    <style>
+        body{
+            font-family: "Arial";
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        header{
+            width: fit-content;
+            margin-left: 10px;
+            margin-top: 10px;
+        }
+
+        a{
+            margin-left: 10px;
+            font-weight: 600;
+            color: blue;
+        }
+
+        img{
+            height: 300px;
+            width: calc(100% / 3.4);
+            object-fit: cover;
+            border: dashed gray 2px;
+            border-radius: 5px;
+            margin: 20px;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <b style="color:gray;">gallery page - projekt cz.4b</b><br>
+    <a href="/">index</a>
+    <a href="/cars.html">edit/update cars</a>
+    <a href="/admin.html">generate invoice</a>
+    <a href="/search.html">search invoices</a><br>
+</header>
+<hr style="width:100%;margin-left:0;border-top: 2px dashed gray">
+<div id="gallery"></div>
+<script>
+    window.onload = async () => {
+        let json = await fetchPostAsync()
+
+        json.forEach(element => document.getElementById("gallery").innerHTML += `<img src='thumb?model=${element}'/>`)
+    }
+
+    fetchPostAsync = async () => {
+        const options = {
+            method: "POST"
+        };
+
+        let response = await fetch("/gallery", options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json()
+    }
+</script>
+</body>
+</html>

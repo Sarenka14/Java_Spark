@@ -14,17 +14,23 @@ import com.itextpdf.text.pdf.PdfWriter;
 import spark.Request;
 import spark.Response;
 
+import javax.servlet.MultipartConfigElement;
+import javax.servlet.ServletException;
+import javax.servlet.http.Part;
 import java.awt.*;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.lang.reflect.Type;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.UUID;
 
 public class App {
     public static int carid = 1;
+    public static String imageUuid;
 
     static ArrayList<Car> cars = new ArrayList<>();
 
@@ -62,7 +68,7 @@ public class App {
             OutputStream outputStream = null;
             outputStream = res.raw().getOutputStream();
 
-            outputStream.write(Files.readAllBytes(Path.of("images/" + req.queryParams("model") + ".jpg")));
+            outputStream.write(Files.readAllBytes(Path.of("images/" + req.queryParams("model"))));
             outputStream.flush();
 
             return outputStream;
@@ -81,6 +87,16 @@ public class App {
         post("/generateRangeInvoice", App::generateRangeInvoice);
 
         get("/downloadCarsInvoice", App::downloadCarsInvoice);
+
+        get("/redirect",App::redirect);
+
+        post("/upload", App::getImages);
+
+        post("/savePhotos", App::savePhotos);
+
+        post("/gallery", App::resPhotos);
+
+
     }
 
     static String addCar(Request req, Response res){
@@ -342,8 +358,6 @@ public class App {
 
         rangeInvoices.add(faktura);
 
-        System.out.println("Faktura za auta w cenach: " + intMin + "-" + intMax + " PLN");
-
         Invoices.makeInvoice(faktura, "Faktura za auta w cenach: " + intMin + "-" + intMax + " PLN", "invoices/invoice_all_cars_by_price_" + faktura.getTime() + ".pdf");
 
         res.type("application/json");
@@ -367,5 +381,75 @@ public class App {
         }
 
         return "ok";
+    }
+
+    public static String redirect(Request req,Response res){
+        imageUuid = req.queryParams("uuid");
+        imageUuid = imageUuid.substring(1, imageUuid.length() - 1);
+        if(req.queryParams("type").equals("upload")){
+            res.redirect("/upload.html");
+        }else if(req.queryParams("type").equals("gallery")){
+            res.redirect("/gallery.html");
+        }
+
+        return "ok";
+    }
+
+    private static Object getImages(Request req, Response res) {
+        Gson gson = new Gson();
+        req.attribute("org.eclipse.jetty.multipartConfig", new MultipartConfigElement("/images"));
+
+        ArrayList<String> nazwyPlikow = new ArrayList<>();
+
+        try {
+            for(Part p : req.raw().getParts()){
+                InputStream inputStream = p.getInputStream();
+                // inputstream to byte
+                byte[] bytes = inputStream.readAllBytes();
+                String fileName = String.valueOf(System.currentTimeMillis());
+                FileOutputStream fos = new FileOutputStream("images/" + fileName);
+                fos.write(bytes);
+                fos.close();
+                nazwyPlikow.add(fileName);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        } catch (ServletException e) {
+            throw new RuntimeException(e);
+        }
+
+        return gson.toJson(nazwyPlikow);
+    }
+
+    private static Object savePhotos(Request req, Response res) {
+        Gson gson = new Gson();
+
+        JsonObject json = new JsonParser().parse(req.body()).getAsJsonObject();
+        JsonElement photoArray = json.get("photoArray");
+        Type listType = new TypeToken<List<String>>() {}.getType();
+        List<String> yourList = new Gson().fromJson(photoArray, listType);
+
+        int temp = 0;
+        for(int i = 0; i <= cars.size()-1;i++){
+            if (cars.get(i).getUuid().equals(imageUuid)){
+                temp = i;
+                for(int j = 0; j <= yourList.size()-1; j++){
+                    cars.get(temp).photos.add(yourList.get(j));
+                }
+            }
+        }
+        return "ok";
+    }
+
+    private static Object resPhotos(Request req, Response res) {
+        Gson gson = new Gson();
+
+        int temp = 0;
+        for(int i = 0; i <= cars.size()-1;i++){
+            if (cars.get(i).getUuid().equals(imageUuid)){
+                temp = i;
+            }
+        }
+        return gson.toJson(cars.get(temp).photos);
     }
 }

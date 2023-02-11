@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Upload</title>
+    <style>
+        body{
+            font-family: "Arial";
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        header{
+            width: fit-content;
+            margin-left: 10px;
+            margin-top: 10px;
+        }
+
+        a{
+            margin-left: 10px;
+            font-weight: 600;
+            color: blue;
+        }
+
+        .main{
+            overflow: hidden;
+        }
+
+        .left {
+            width: fit-content;
+            float: left;
+            padding-right: 10px;
+            margin-left: 10px;
+        }
+
+        .right{
+            border: 4px dashed black;
+            border-radius: 50px;
+            padding-left: 10px;
+            height: 500px;
+            width: calc(100% - 179px);
+            float: left;
+            text-align: center;
+            padding: 10px;
+        }
+
+        button{
+            border: 2px solid red;
+            border-radius: 10px;
+            color: red;
+            cursor: pointer;
+        }
+
+        img{
+            height: 200px;
+            width: 200px;
+            object-fit: cover;
+            border-radius: 10px;
+        }
+
+        .image{
+            width: 200px;
+            height: 200px;
+            float: left;
+            margin: 10px;
+        }
+
+        .delButton{
+            margin-top: 10px;
+            margin-left: 170px;
+            display: flex;
+            position: absolute;
+            color: white;
+            background-color: black;
+            border: black;
+
+        }
+
+        .zdjecia{
+            height: 480px;
+            width: 100%;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <b style="color:gray;">upload page - projekt cz.4</b><br>
+    <a href="/">index</a>
+    <a href="/cars.html">edit/update cars</a>
+    <a href="/admin.html">generate invoice</a>
+    <a href="/search.html">search invoices</a><br>
+</header>
+<hr style="width:100%;margin-left:0;border-top: 2px dashed gray">
+
+<div class="main">
+    <div class="left">
+        <button id="save">save gallery images</button>
+    </div>
+    <div class="right" id="right">
+        <b id="text" style="color:gray;">Przeciągnij tutaj zdjęcia</b>
+        <div id="zdjecia" class="zdjecia"></div>
+    </div>
+</div>
+
+<script>
+    document.querySelector("html").ondragover = function (e) {
+        document.getElementById("text").innerText = "Zdjęcie nad dokumentem html"
+        e.preventDefault(); // usuwa domyślne zachowanie strony po wykonaniu zdarzenia, warto zakomentować i sprawdzić
+        e.stopPropagation(); // zatrzymuje dalszą propagację zdarzenia, warto zakomentować i sprawdzić
+    }
+    document.querySelector("html").ondragleave = function (e) {
+        document.getElementById("text").innerText = "Zdjęcie poza dokumentem html"
+        e.preventDefault();
+        e.stopPropagation();
+    }
+    document.getElementById("zdjecia").ondragover = function (e) {
+        document.getElementById("text").innerText = "Upuść zdjęcie"
+        e.preventDefault();
+        e.stopPropagation();
+    }
+
+    let photoArray = []
+
+    document.getElementById("zdjecia").ondrop = async function (e) {
+        document.getElementById("text").innerHTML = "Przeciągnij tutaj zdjęcia"
+
+        e.stopPropagation();
+        e.preventDefault();
+
+        const files = e.dataTransfer.files;
+
+        // teraz utwórz obiekt FormData zastępujący formularz
+        // oraz dodaj do niego po kolei wszystkie pliki z powyższej listy files
+        // na koniec użyj fetcha do uploadu plików
+
+        const fd = new FormData();
+
+        for (let i = 0; i < files.length; i++) {
+            fd.append('file', files[i]);
+        }
+
+        let json = await getImages(fd)
+
+        for(var i = 0; i < json.length; i++){
+            document.getElementById("zdjecia").innerHTML += `<div class="image"><button class="delButton" onclick="delPhoto(\'${json[i]}\')"><b>X</b></button><img src='thumb?model=${json[i]}'/></div>`
+            photoArray.push(json[i])
+        }
+    }
+
+    getImages = async (fd) => {
+        const options = {
+            method: "POST",
+            body: fd
+        };
+
+        let response = await fetch("/upload", options)
+
+        if (!response.ok)
+            return response.status
+        else
+            return await response.json()
+    }
+
+    function delPhoto(uuid){
+        photoArray = photoArray.filter(item=>item!==uuid)
+        document.getElementById("zdjecia").innerHTML = ""
+        photoArray.forEach(element => document.getElementById("zdjecia").innerHTML += `<div class="image"><button class="delButton" onclick="delPhoto(\'${element}\')"><b>X</b></button><img src='thumb?model=${element}'/></div>`)
+    }
+
+    document.getElementById("save").onclick = () =>{
+        const body = JSON.stringify({photoArray})
+        fetch("/savePhotos", { method: "post", body })
+            .then(response => response.text())
+            .then(data => {
+                alert("saved")
+            })
+            .catch(error => console.log(error))
+    }
+</script>
+</body>
+</html>
