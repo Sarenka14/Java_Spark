@@ -407,7 +407,7 @@ public class App {
                 // inputstream to byte
                 byte[] bytes = inputStream.readAllBytes();
                 String fileName = String.valueOf(System.currentTimeMillis());
-                FileOutputStream fos = new FileOutputStream("images/" + fileName);
+                FileOutputStream fos = new FileOutputStream("images/" + fileName + ".jpg");
                 fos.write(bytes);
                 fos.close();
                 nazwyPlikow.add(fileName);
@@ -434,7 +434,7 @@ public class App {
             if (cars.get(i).getUuid().equals(imageUuid)){
                 temp = i;
                 for(int j = 0; j <= yourList.size()-1; j++){
-                    cars.get(temp).photos.add(yourList.get(j));
+                    cars.get(temp).photos.add(yourList.get(j) + ".jpg");
                 }
             }
         }

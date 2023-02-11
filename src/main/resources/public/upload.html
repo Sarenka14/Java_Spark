@@ -142,7 +142,7 @@
         let json = await getImages(fd)
 
         for(var i = 0; i < json.length; i++){
-            document.getElementById("zdjecia").innerHTML += `<div class="image"><button class="delButton" onclick="delPhoto(\'${json[i]}\')"><b>X</b></button><img src='thumb?model=${json[i]}'/></div>`
+            document.getElementById("zdjecia").innerHTML += `<div class="image"><button class="delButton" onclick="delPhoto(\'${json[i]}\')"><b>X</b></button><img src='thumb?model=${json[i]}.jpg'/></div>`
             photoArray.push(json[i])
         }
     }
@@ -164,7 +164,7 @@
     function delPhoto(uuid){
         photoArray = photoArray.filter(item=>item!==uuid)
         document.getElementById("zdjecia").innerHTML = ""
-        photoArray.forEach(element => document.getElementById("zdjecia").innerHTML += `<div class="image"><button class="delButton" onclick="delPhoto(\'${element}\')"><b>X</b></button><img src='thumb?model=${element}'/></div>`)
+        photoArray.forEach(element => document.getElementById("zdjecia").innerHTML += `<div class="image"><button class="delButton" onclick="delPhoto(\'${element}\')"><b>X</b></button><img src='thumb?model=${element}.jpg'/></div>`)
     }
 
     document.getElementById("save").onclick = () =>{

@@ -114,7 +114,9 @@
             ${JSON.stringify(element.airbags[3].description).slice(1,-1)}:${JSON.stringify(element.airbags[3].value)}<br></td>
             <td><div class="box" style="background:${element.kolor};"></div></td>
             <td><button onclick="callDeleteCar(\'${element.uuid}\')">delete car</button></td>
-            <td><button onclick="showUpdateBox(\'${element.uuid}\',\'${element.model}\',\'${element.rok}\')">update car</button></td></tr>`);
+            <td><button onclick="showUpdateBox(\'${element.uuid}\',\'${element.model}\',\'${element.rok}\')">update car</button></td>
+            <td><a href="/redirect?uuid=\'${element.uuid}\'&type=upload">uploader</a></td>
+            <td><a href="/redirect?uuid=\'${element.uuid}\'&type=gallery">gallery</a></td></tr>`);
         };
 
         fetchPostAsync = async () => {
@@ -145,7 +147,9 @@
             ${JSON.stringify(element.airbags[3].description).slice(1,-1)}:${JSON.stringify(element.airbags[3].value)}<br></td>
             <td><div class="box" style="background:${element.kolor};"></div></td>
             <td><button onclick="callDeleteCar(\'${element.uuid}\')">delete car</button></td>
-            <td><button onclick="showUpdateBox(\'${element.uuid}\',\'${element.model}\',\'${element.rok}\')">update car</button></td></tr>`);
+            <td><button onclick="showUpdateBox(\'${element.uuid}\',\'${element.model}\',\'${element.rok}\')">update car</button></td>
+            <td><a href="/redirect?uuid=\'${element.uuid}\'&type=upload">uploader</a></td>
+            <td><a href="/redirect?uuid=\'${element.uuid}\'&type=gallery">gallery</a></td></tr>`);
         }
 
         deleteCar = async (uuid) => {
@@ -199,7 +203,9 @@
             ${JSON.stringify(element.airbags[3].description).slice(1,-1)}:${JSON.stringify(element.airbags[3].value)}<br></td>
             <td><div class="box" style="background:${element.kolor};"></div></td>
             <td><button onclick="callDeleteCar(\'${element.uuid}\')">delete car</button></td>
-            <td><button onclick="showUpdateBox(\'${element.uuid}\',\'${element.model}\',\'${element.rok}\')">update car</button></td></tr>`);
+            <td><button onclick="showUpdateBox(\'${element.uuid}\',\'${element.model}\',\'${element.rok}\')">update car</button></td>
+            <td><a href="/redirect?uuid=\'${element.uuid}\'&type=upload">uploader</a></td>
+            <td><a href="/redirect?uuid=\'${element.uuid}\'&type=gallery">gallery</a></td></tr>`);
         }
 
         updateCar = async (uuid, model, rok) => {
