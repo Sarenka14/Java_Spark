@@ -96,7 +96,13 @@ public class App {
 
         post("/gallery", App::resPhotos);
 
+        post("/getSize",App::GetSize);
 
+        post("/rotate",App::Rotate);
+
+        post("/flip",App::Flip);
+
+        post("/crop",App::Crop);
     }
 
     static String addCar(Request req, Response res){
@@ -404,7 +410,6 @@ public class App {
         try {
             for(Part p : req.raw().getParts()){
                 InputStream inputStream = p.getInputStream();
-                // inputstream to byte
                 byte[] bytes = inputStream.readAllBytes();
                 String fileName = String.valueOf(System.currentTimeMillis());
                 FileOutputStream fos = new FileOutputStream("images/" + fileName + ".jpg");
@@ -451,5 +456,33 @@ public class App {
             }
         }
         return gson.toJson(cars.get(temp).photos);
+    }
+
+    private static String GetSize(Request request, Response response) throws IOException {
+        Gson gson = new Gson();
+
+        Id path = gson.fromJson(request.body(),Id.class);
+        return Imaging.getSize(path.getId());
+    }
+
+    private static String Crop(Request request, Response response) throws IOException {
+        Gson gson = new Gson();
+
+        Crop crop = gson.fromJson(request.body(),Crop.class);
+        return Imaging.Crop(crop.getId(),crop.getX(),crop.getY(),crop.getW(),crop.getH());
+    }
+
+    private static String Flip(Request request, Response response) throws IOException {
+        Gson gson = new Gson();
+
+        Flip flip = gson.fromJson(request.body(),Flip.class);
+        return Imaging.Flip(flip.getType(),flip.getId());
+    }
+
+    private static String Rotate(Request request, Response response) throws IOException {
+        Gson gson = new Gson();
+
+        Id path = gson.fromJson(request.body(),Id.class);
+        return Imaging.Rotate(path.getId());
     }
 }

@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Imaging</title>
+    <style>
+        body{
+            font-family: "Arial";
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        header{
+            width: fit-content;
+            margin-left: 10px;
+            margin-top: 10px;
+        }
+
+        a{
+            margin-left: 10px;
+            font-weight: 600;
+            color: blue;
+        }
+
+        #right{
+            border:2px dashed black;
+            margin:10px;
+            position: relative;
+            overflow: hidden;
+            width: 500px;
+            height: 400px;
+            background-size:cover;
+            background-position: center;
+        }
+    </style>
+</head>
+<body>
+<header>
+    <b style="color:gray;">simple image editor page - projekt cz.5a</b><br>
+    <a href="/">index</a>
+    <a href="/cars.html">edit/update cars</a>
+    <a href="/admin.html">generate invoice</a>
+    <a href="/search.html">search invoices</a><br>
+</header>
+<hr style="width:100%;margin-left:0;border-top: 2px dashed gray">
+<main>
+    <div id="left">
+        <button id="rotate">rotate</button>
+        <button id="flipH">flipH</button>
+        <button id="flipV">flipV</button>
+        <button id="crop">crop</button></div>
+    <div id="right"></div>
+
+</main>
+
+
+<script>
+    let flag = true
+    let x,y,w,h
+    let sx = 1
+    let sy = 1
+    let params = new URLSearchParams(location.search);
+    const path = params.get('name')
+    const DeleteLast = (text) =>{
+        return text.substring(0,text.length - 2)
+    }
+    const genImage = (data)=>{
+        const d = data.split(",")
+        carPhoto.style.backgroundImage = `url("/thumb?model=${path}&rand=${Math.random()}")`
+        sx = d[0]/500;
+        sy = d[1]/400;
+    }
+    const carPhoto = document.getElementById("right")
+    window.onload = async() =>{
+        const options = {
+            method: "POST",
+            body:JSON.stringify({id:path})
+        };
+        await fetch("/getSize",options).then(response=>response.text()).then((data)=>{
+            genImage(data)
+        })
+    }
+
+    const setDivWidth = (div,e2,e) =>{
+        if(flag){
+            div.style.width = (e2.offsetX-e.offsetX).toString()  + "px"
+            div.style.height = (e2.offsetY-e.offsetY).toString()  + "px"
+        }
+    }
+
+    document.getElementById("rotate").onclick = async() =>{
+        const options = {
+            method: "POST",
+            body:JSON.stringify({id:path})
+        };
+        await fetch("/rotate",options).then(response=>response.text()).then((data)=>{
+            genImage(data)
+        })
+    }
+
+    const Flip = async(type) =>{
+        const options = {
+            method: "POST",
+            body:JSON.stringify({id:path,type:type})
+        };
+        await fetch("/flip",options).then(response=>response.text()).then((data)=>{
+            genImage(data)
+        })
+    }
+    document.getElementById("flipH").onclick = async() => Flip("h")
+
+    document.getElementById("flipV").onclick = async() => Flip("v")
+
+    const div = document.createElement("div");
+    div.style.position = "absolute";
+    div.style.backgroundColor = "rgba(0,0,255,0.7)"
+    div.style.border= "1px solid orange"
+    div.style.width = "0px"
+    div.style.height = "0px"
+    carPhoto.addEventListener("mousedown",(e)=>{
+        flag = true
+        div.style.top = e.offsetY.toString() + "px";
+        div.style.left = e.offsetX.toString() + "px";
+
+        carPhoto.appendChild(div)
+        carPhoto.addEventListener("mousemove",(e2)=>setDivWidth(div,e2,e))
+    })
+    carPhoto.addEventListener("mouseup",(e)=>{
+        x = Math.floor(parseInt(DeleteLast(div.style.left))*sx)
+        y = Math.floor(parseInt(DeleteLast(div.style.top))*sy)
+        w = Math.floor(parseInt(DeleteLast(div.style.width))*sx)
+        h = Math.floor(parseInt(DeleteLast(div.style.height))*sy)
+        flag = false
+    })
+    document.getElementById("crop").onclick = async()=>{
+        const options = {
+            method: "POST",
+            body:JSON.stringify({id:path,x,y,w,h})
+        };
+        if(div.style.width != "0px" && div.style.height != "0px"){
+            await fetch("/crop",options).then(response=>response.text()).then((data)=>{
+                genImage(data)
+                div.style.width = "0px"
+                div.style.height = "0px"
+            })
+
+        }
+
+    }
+
+
+
+</script>
+</body>
+</html>
