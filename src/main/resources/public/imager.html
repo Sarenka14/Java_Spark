@@ -64,11 +64,13 @@
     const DeleteLast = (text) =>{
         return text.substring(0,text.length - 2)
     }
-    const genImage = (data)=>{
+    const genImage = async (data) => {
         const d = data.split(",")
         carPhoto.style.backgroundImage = `url("/thumb?model=${path}&rand=${Math.random()}")`
-        sx = d[0]/500;
-        sy = d[1]/400;
+        sx = d[0] / 500;
+        sy = d[1] / 400;
+
+
     }
     const carPhoto = document.getElementById("right")
     window.onload = async() =>{
@@ -79,13 +81,6 @@
         await fetch("/getSize",options).then(response=>response.text()).then((data)=>{
             genImage(data)
         })
-    }
-
-    const setDivWidth = (div,e2,e) =>{
-        if(flag){
-            div.style.width = (e2.offsetX-e.offsetX).toString()  + "px"
-            div.style.height = (e2.offsetY-e.offsetY).toString()  + "px"
-        }
     }
 
     document.getElementById("rotate").onclick = async() =>{
@@ -117,21 +112,30 @@
     div.style.border= "1px solid orange"
     div.style.width = "0px"
     div.style.height = "0px"
+
     carPhoto.addEventListener("mousedown",(e)=>{
         flag = true
-        div.style.top = e.offsetY.toString() + "px";
         div.style.left = e.offsetX.toString() + "px";
+        div.style.top = e.offsetY.toString() + "px";
 
         carPhoto.appendChild(div)
-        carPhoto.addEventListener("mousemove",(e2)=>setDivWidth(div,e2,e))
+        carPhoto.addEventListener("mousemove",(e2)=>{
+            if(flag){
+                div.style.width = (e2.clientX-e.clientX).toString()  + "px"
+                div.style.height = (e2.clientY-e.clientY).toString()  + "px"
+
+                carPhoto.addEventListener("mouseup",()=>{
+                    x = Math.floor(parseInt(DeleteLast(div.style.left))*sx)
+                    y = Math.floor(parseInt(DeleteLast(div.style.top))*sy)
+                    w = Math.floor(parseInt(DeleteLast(div.style.width))*sx)
+                    h = Math.floor(parseInt(DeleteLast(div.style.height))*sy)
+                    flag = false
+                    carPhoto.addEventListener("mousemove",function(){});
+                })
+            }
+        })
     })
-    carPhoto.addEventListener("mouseup",(e)=>{
-        x = Math.floor(parseInt(DeleteLast(div.style.left))*sx)
-        y = Math.floor(parseInt(DeleteLast(div.style.top))*sy)
-        w = Math.floor(parseInt(DeleteLast(div.style.width))*sx)
-        h = Math.floor(parseInt(DeleteLast(div.style.height))*sy)
-        flag = false
-    })
+
     document.getElementById("crop").onclick = async()=>{
         const options = {
             method: "POST",
